@@ -26,6 +26,11 @@ const is_professor = async (id: number ) => {
     const response = await query(sql); 
     return JSON.parse(JSON.stringify(response)).length !== 0; 
 }
+const is_rector = async (id: number ) => {
+    let sql = `select * from rector where rector_id = ${mysqlIntance.escape(id)}`;
+    const response = await query(sql); 
+    return JSON.parse(JSON.stringify(response)).length !== 0; 
+}
 /**
  * @function signup_model
  * This function registers a user in the database 
@@ -40,7 +45,6 @@ const signup_model = async ( user_data: User_singup) => {
     }
     //Hash password
     const hash_password = await hashPassword(user_data.contrasena);
-    console.log(hash_password);
     //Query sql
     let sql: string = 'insert into usuarios values (' +
         `NULL,` + 
@@ -53,7 +57,10 @@ const signup_model = async ( user_data: User_singup) => {
         `${mysqlIntance.escape(user_data.departamento_id)}` +
         `)`
         ;
-    console.log(sql);    
+    await query(sql);
+    let professor_id = await get_id(user_data.correo);
+    //Add to the table profesor
+    sql = `insert into docente values(${mysqlIntance.escape(professor_id[0].usuario_id)})`;
     await query(sql);
     //return 
     return { status: true };
@@ -102,5 +109,6 @@ export {
     validate_password,
     is_professor,
     is_jefe_carrera,
+    is_rector,
     get_id
 };

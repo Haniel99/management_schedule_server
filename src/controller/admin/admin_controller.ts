@@ -4,12 +4,10 @@ import { request } from "../../interface/request_interface";
 
 //This function shows all admin's data 
 const admin_controller = async (req: request, res: Response) => {
-    try {
-        const admin_res = await admin_model();
-        return res.send('This section is the main page');
-    } catch (error) {
-        
-    }
+    res.status(200).send({
+        status: true,
+        response: "The user is admin"
+    })
 }
 
 

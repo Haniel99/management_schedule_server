@@ -7,7 +7,8 @@ interface Schedule {
 
 interface Room{
     nombre: string,
-    numbero: number
+    numero: number,
+    departamento_id: number,
 }
 
 interface Subject{
@@ -32,13 +33,20 @@ interface IClassBlock{
     dia: string, 
     semestre: number
 }
+interface IClassBlockChange {
+    asignatura_id: number,
+    sala_id: number,
+    docente_id: number,
+    grupo: string
+}
 
 export {
     Schedule,
     Room,
     Subject,
     Department,
-    IClassBlock
+    IClassBlock,
+    IClassBlockChange
 }
 
 /**

@@ -6,7 +6,7 @@ import { request } from "../interface/request_interface";
 const authentication = (req: request, res: Response, next: NextFunction) => {
 
     try {
-        //get token 
+        //get token
         let jwt: any = req.headers.authorization || false;
         //valdiate if exist token  
         if (!jwt) {

@@ -1,5 +1,5 @@
 import { query, mysqlIntance } from "../../config/config_mysql"
-import { IClassBlock, Schedule } from "../../interface/admin_interface"
+import { IClassBlock, IClassBlockChange, Schedule } from "../../interface/admin_interface"
 //This function is to add a new schedule
 const create_schedule_model = async (data: Schedule, usuario_id: number)=> {
     //get data
@@ -90,7 +90,8 @@ const get_block_semester_model = async (semester_id: number) => {
         // Construct SQL query to get the class blocks for the given semester ID
         const sql = `
           SELECT b.hora_inicio, b.hora_fin, ass.nombre AS asignatura, u.nombre AS nombre_profesor, u.apellido AS apellido_profesor
-          , s.nombre as sala, s.número as numero_sala, a.grupo as grupo
+          , s.nombre as sala, s.número as numero_sala, a.grupo as grupo,
+          a.bloque_id, a.semestre_id, a.docente_id, a.asignatura_id, a.sala_id, a.grupo, a.semestre, a.year, a.dia
           FROM asignacion a 
           JOIN bloque_horario b ON a.bloque_id = b.bloque_id
           JOIN sala s ON a.sala_id = s.sala_id
@@ -132,7 +133,6 @@ const create_class_block_model = async (data: IClassBlock) => {
             ${mysqlIntance.escape(dia)}
         )
     `;
-    console.log(sql);
     // Execute the SQL query to insert the class block
     await query(sql);
     //If all is ok, response true
@@ -141,13 +141,54 @@ const create_class_block_model = async (data: IClassBlock) => {
 
 const get_room_model = async  (department_id: number) => {
     //Sql
-    let sql = `select sala_id, nombre, número from sala where departamento_id = ${mysqlIntance.escape(department_id)}`;
+    let sql = `select sala_id, nombre, número as numero from sala where departamento_id = ${mysqlIntance.escape(department_id)}`;
     //Query
     const res = await query(sql);
     //Response
     return { status: true, response: JSON.parse(JSON.stringify(res))};
 }
 
+const putClassBlockModel = async (dataToVerify: IClassBlock, dataToChange: IClassBlockChange ) => {
+    //sql
+    let sql = `update asignacion
+    set docente_id = ${mysqlIntance.escape(dataToChange.docente_id)},
+    asignatura_id = ${mysqlIntance.escape(dataToChange.asignatura_id)},
+    sala_id = ${mysqlIntance.escape(dataToChange.sala_id)},
+    grupo = ${mysqlIntance.escape(dataToChange.grupo)}
+    where 
+    bloque_id = ${mysqlIntance.escape(dataToVerify.bloque_id)} and
+        semestre_id = ${mysqlIntance.escape(dataToVerify.semestre_id)} and
+        docente_id = ${mysqlIntance.escape(dataToVerify.docente_id)} and
+        asignatura_id = ${mysqlIntance.escape(dataToVerify.asignatura_id)} and
+        sala_id = ${mysqlIntance.escape(dataToVerify.sala_id)} and
+        grupo = ${mysqlIntance.escape(dataToVerify.grupo)} and
+        semestre = ${mysqlIntance.escape(dataToVerify.semestre)} and
+        year = ${mysqlIntance.escape(dataToVerify.year)} and
+        dia = ${mysqlIntance.escape(dataToVerify.dia)}
+    `;
+    //query
+    await query(sql);
+    //answer
+}
+
+const deleteClassBlockModel = async ( identify: IClassBlock  ) => {
+    //sql
+    let sql = `delete from asignacion
+    where 
+    bloque_id = ${mysqlIntance.escape(identify.bloque_id)} and
+        semestre_id = ${mysqlIntance.escape(identify.semestre_id)} and
+        docente_id = ${mysqlIntance.escape(identify.docente_id)} and
+        asignatura_id = ${mysqlIntance.escape(identify.asignatura_id)} and
+        sala_id = ${mysqlIntance.escape(identify.sala_id)} and
+        grupo = ${mysqlIntance.escape(identify.grupo)} and
+        semestre = ${mysqlIntance.escape(identify.semestre)} and
+        year = ${mysqlIntance.escape(identify.year)} and
+        dia = ${mysqlIntance.escape(identify.dia)}
+    `;
+    //query
+    await query(sql);
+    //answer
+}
 export {
     create_schedule_model,
     get_schedule_model,
@@ -156,5 +197,7 @@ export {
     create_semesters,
     get_block_semester_model,
     create_class_block_model,
-    get_room_model
+    get_room_model,
+    putClassBlockModel,
+    deleteClassBlockModel
 }

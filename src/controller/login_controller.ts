@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { request } from "../interface/request_interface";
 import { 
     get_id, 
     login_model, 
@@ -6,8 +7,23 @@ import {
     validate_email, 
     validate_password,
     is_professor,
-    is_jefe_carrera
+    is_jefe_carrera,
+    is_rector
 } from "../model/login/login_model";
+import { get_department_id } from "../model/admin/services_model";
+const login_controller_rector = async (req: Request, res: Response ) => {
+    try {
+        const res_login_controller: any = await login_controller(req, res);
+        const isRector = await is_rector(res_login_controller);
+        if(!isRector){
+            return res.status(500).send({status: false, response: "The user is not rector"});
+        }  
+        const { jwt } = await login_model(res_login_controller); //get token 
+        res.status(200).send({status: true, response: jwt, id: res_login_controller});
+    } catch (error) {
+        
+    }
+}
 const login_controller_professor = async (req: Request, res: Response ) => {
     try {
         const res_login_controller: any = await login_controller(req, res);
@@ -59,7 +75,6 @@ const login_controller = async (req: Request, res: Response) => {
         //answer user id
         return id_num;
     } catch (error) {
-        console.log(error);
         // Handle any unexpected errors here
         res.status(500).send({
             status: false,
@@ -68,10 +83,16 @@ const login_controller = async (req: Request, res: Response) => {
     }
 }
 
-const signup_controller = async (req: Request, res: Response) => {
+const signup_controller = async (req: request, res: Response) => {
     try {
         //create account
-        const {data} = req.body; 
+        var {data} = req.body; 
+        const user: any = req.user;
+        const dep_id = await get_department_id(user.id);
+        data = {
+            ...data,
+            departamento_id: dep_id[0].departamento_id
+        }
         const singup_res = await signup_model(data); 
         //Validate answers   
         if (!singup_res.status){
@@ -97,5 +118,6 @@ const signup_controller = async (req: Request, res: Response) => {
 export {
     login_controller_head,
     login_controller_professor,
-    signup_controller
+    signup_controller,
+    login_controller_rector
 };
